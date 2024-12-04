@@ -26,21 +26,33 @@ void ChatServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
 	{
 		// 把当前用户从connMap_ 里删除并设置下线
 		ChatService::instance()->clientCloseException(conn);
-		conn -> shutdown();
+		//conn -> shutdown();
 	}
 }
+
 // 专门用来处理消息的函数
 void ChatServer::onMessage(const muduo::net::TcpConnectionPtr& conn, muduo::net::Buffer* buffer, muduo::Timestamp receiveTime)
 {
 	std::string buf = buffer->retrieveAllAsString();
-	Json js = Json::parse(buf);
-	LOG_INFO << __FILE__ << "服务端收到的消息:" << buf;
-	// 根据js["msgid"]从服务层中调入相应的函数进行处理, 避免网络层和服务层在一起
-	int msgid = js["msgid"].get<int>();
-	auto handlerFunc = ChatService::instance()->getHandler(msgid);
-	// 调入相应的消息处理函数 
-	handlerFunc(conn, js, receiveTime);
-
+	try 
+	{
+		// 尝试解析JSON
+		auto js = Json::parse(buf);
+		// JSON解析成功，调用处理有效JSON的函数
+		LOG_INFO << __FILE__ << "服务端收到的消息:" << buf;
+		// 根据js["msgid"]从服务层中调入相应的函数进行处理, 避免网络层和服务层在一起
+		int msgid = js["msgid"].get<int>();
+		auto handlerFunc = ChatService::instance()->getHandler(msgid);
+		// 调入相应的消息处理函数 
+		handlerFunc(conn, js, receiveTime);
+	}
+	catch (const Json::parse_error& e) 
+	{
+		// 解析失败，调用处理无效JSON的函数
+		// 强制终止
+		conn->forceClose();
+		ChatServer::onConnection(conn);
+	}
 }
 // 启动服务器
 void ChatServer::start()

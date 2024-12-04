@@ -12,6 +12,11 @@ ChatService::ChatService()
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
 	myHandleMap_.insert({ MSG_ONE_CHAT, std::bind(&ChatService::oneChat, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+	myHandleMap_.insert({ MSG_ADD_FRIEND, std::bind(&ChatService::addFriend, this,
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+	myHandleMap_.insert({ MSG_DELETE_FRIEND, std::bind(&ChatService::deleteFriend, this,
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 
 }
 // 得到单例对象
@@ -69,9 +74,6 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			user.setstate("online");
 			userModel_.updateState(user);
 
-			// 查询有没有离线消息
-			std::vector<std::string> vec = offlineModel_.query(id);
-			
 
 			// 记录此用户对应的连接
 			{
@@ -85,7 +87,32 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			response["msgid"] = MSG_LOGIN_ACK;
 			response["errno"] = 0;
 			response["name"] = user.getname();
-			response["offlinemessage"] = vec;
+			// 查询有没有离线消息
+			std::vector<std::string> vec = offlineMsgModel_.query(id);
+			if (!vec.empty())
+			{
+				// 有离线消息 删除存在的离线消息
+				response["offlinemessage"] = vec;
+				offlineMsgModel_.remove(id);
+			}
+
+			// 查询有没有好友信息
+			std::vector<User> vecuser = friendModel_.query(id);
+			if (!vecuser.empty())
+			{
+				// 得到该用户的好友列表
+				std::vector<std::string>vec;
+				for (auto& user : vecuser)
+				{
+					Json js;
+					js["id"] = user.getid();
+					js["name"] = user.getname();
+					js["state"] = user.getstate();
+					vec.push_back(js.dump());
+				}
+				response["friends"] = vec;
+			}
+
 			conn->send(response.dump());
 		}
 	}
@@ -179,24 +206,50 @@ void ChatService::oneChat(const muduo::net::TcpConnectionPtr& conn,Json& js,mudu
 	}
 	{
 		std::unique_lock<std::mutex> lock(connMutex_);
-		auto it = connMap_.find(toid);
-		if (it != connMap_.end())
+		auto ittoid = connMap_.find(toid);
+		auto itid = connMap_.find(id);
+		if (itid == connMap_.end() || itid->second != conn)
+		{
+			return;
+		}
+		if (ittoid != connMap_.end())
 		{
 			// 找到了在线的对象
 			// 把消息传出去
-			it->second->send(js.dump());
+			ittoid->second->send(js.dump());
 			return;
 		}
 	}
 
 	// 存储离线消息
-	offlineModel_.insert(toid, js.dump());
+	offlineMsgModel_.insert(toid, js.dump());
 
 }
 
+// 服务器异常终止处理用户的在线状态
+void ChatService::reset()
+{
+	userModel_.resetState();
+}
 
+// 添加好友
+void ChatService::addFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo::Timestamp receiveTime)
+{
+	// 用户id
+	int id = js["id"].get<int>();
+	int friendid = js["friendid"].get<int>();
+	friendModel_.insert(id, friendid);
+	friendModel_.insert(friendid, id);
 
-
+}
+// 删除好友
+void ChatService::deleteFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo::Timestamp receiveTime)
+{
+	int id = js["id"].get<int>();
+	int friendid = js["friendid"].get<int>();
+	friendModel_.remove(id, friendid);
+	friendModel_.remove(friendid, id);
+}
 
 
 

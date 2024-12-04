@@ -9,7 +9,9 @@ enum MSG_TYPE
 	MSG_LOGIN_ACK,	// 登录响应消息
 	MSG_REG,		// 注册消息
 	MSG_REG_ACK,	// 注册响应消息
-	MSG_ONE_CHAT	// 一对一聊天消息
+	MSG_ONE_CHAT,	// 一对一聊天消息
+	MSG_ADD_FRIEND,	// 添加好友
+	MSG_DELETE_FRIEND // 删除好友
 
 };
 

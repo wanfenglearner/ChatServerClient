@@ -6,14 +6,15 @@
 #include <muduo/base/Logging.h>
 #include <muduo/base/LogStream.h>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <iostream>
 #include <json.hpp>
 #include <unordered_map>
 #include "public.h"
-#include "usermodel.h"
-#include <mutex>
 #include "offlinemessagemodel.h"
+#include "usermodel.h"
+#include "friendmodel.h"
 
 // 使用命名空间包含 json
 using Json = nlohmann::json;
@@ -42,6 +43,17 @@ public:
 	void clientCloseException(const muduo::net::TcpConnectionPtr& conn);
 	// 从消息js["msgid"]id中得到对应的处理函数handle
 	MyHandler getHandler(int msgid);
+
+	// 服务器异常终止处理用户的在线状态
+	void reset();
+	// 添加好友
+	void addFriend(const muduo::net::TcpConnectionPtr& conn,
+		Json& js,
+		muduo::Timestamp receiveTime);
+	// 删除好友
+	void deleteFriend(const muduo::net::TcpConnectionPtr& conn,
+		Json& js,
+		muduo::Timestamp receiveTime);
 private:
 	// 构造函数
 	ChatService();
@@ -56,7 +68,9 @@ private:
 	// 操作数据库 user 表
 	UserModel userModel_;
 	// 操作数据库 offlinemessage 表
-	OfflineMsgModel offlineModel_;
+	OfflineMsgModel offlineMsgModel_;
+	// 操作数据库 friend 表
+	FriendModel friendModel_;
 };
 
 #endif
