@@ -1,1 +1,0 @@
-cd /home/robin/projects/Chat/Client/; g++ -o "/home/robin/projects/Chat/Client/bin/x64/Debug/Client.out" -Wl,--no-undefined -Wl,-L/usr/local/lib/ -Wl,-L/usr/lib64/ -Wl,-L/usr/lib64/mysql/ -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack /home/robin/projects/Chat/Client/obj/x64/Debug/main.o -lmuduo_net -lmuduo_base -lmuduo_http -lmuduo_inspect -lmysqlclient -lhiredis -lpthread
