@@ -16,6 +16,12 @@ ChatService::ChatService()
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
 	myHandleMap_.insert({ MSG_DELETE_FRIEND, std::bind(&ChatService::deleteFriend, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+	myHandleMap_.insert({ MSG_CREATE_GROUP, std::bind(&ChatService::createGroup, this,
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+	myHandleMap_.insert({ MSG_ADD_GROUP, std::bind(&ChatService::addGroup, this,
+	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+	myHandleMap_.insert({ MSG_GROUP_CHAT, std::bind(&ChatService::chatGroup, this,
+	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
 
 
 }
@@ -251,7 +257,55 @@ void ChatService::deleteFriend(const muduo::net::TcpConnectionPtr& conn, Json& j
 	friendModel_.remove(friendid, id);
 }
 
+// 创建群组
+void ChatService::createGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
+{
+	std::string groupname = js["groupname"];
+	std::string groupdesc = js["groupdesc"];
+	int userid = js["id"].get<int>();
 
+	Group group;
+	group.setname(groupname);
+	group.setdesc(groupdesc);
+	if (groupModel_.createGroup(group))
+	{
+		// 将自己添加到群组之中 为 创建者
+		groupModel_.addGroup(userid, group.getid(), "creator");
+	}
+	
+}
+// 添加群组
+void ChatService::addGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
+{
+	int userid = js["id"].get<int>();
+	int groupid = js["groupid"].get<int>();
+	groupModel_.addGroup(userid, groupid, "normal");
+}
 
+// 群组聊天
+void ChatService::chatGroup(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo::Timestamp receiveTim)
+{
+	int userid = js["id"].get<int>();
+	int groupid = js["groupid"].get<int>();
+
+	std::vector<int> vecusers = groupModel_.getCurGroupUsers(userid, groupid);
+	
+	// 加锁
+	std::unique_lock<std::mutex> lock(connMutex_);
+	for (auto& id : vecusers)
+	{
+		auto it = connMap_.find(id);
+		if (it != connMap_.end())
+		{
+			it->second->send(js.dump());
+		}
+		else
+		{
+			// 存储离线消息
+			offlineMsgModel_.insert(id, js.dump());
+		}
+	}
+
+}
 
 

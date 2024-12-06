@@ -15,7 +15,7 @@
 #include "offlinemessagemodel.h"
 #include "usermodel.h"
 #include "friendmodel.h"
-
+#include "groupmodel.h"
 // 使用命名空间包含 json
 using Json = nlohmann::json;
 
@@ -54,6 +54,18 @@ public:
 	void deleteFriend(const muduo::net::TcpConnectionPtr& conn,
 		Json& js,
 		muduo::Timestamp receiveTime);
+	// 创建群组
+	void createGroup(const muduo::net::TcpConnectionPtr& conn,
+		Json& js,
+		muduo::Timestamp receiveTime);
+	// 添加群组
+	void addGroup(const muduo::net::TcpConnectionPtr& conn,
+		Json& js,
+		muduo::Timestamp receiveTime);
+	// 群组聊天
+	void chatGroup(const muduo::net::TcpConnectionPtr& conn,
+		Json& js,
+		muduo::Timestamp receiveTim);
 private:
 	// 构造函数
 	ChatService();
@@ -71,6 +83,8 @@ private:
 	OfflineMsgModel offlineMsgModel_;
 	// 操作数据库 friend 表
 	FriendModel friendModel_;
+	// 操作数据库 allgroup 和 groupuser
+	GroupModel groupModel_;
 };
 
 #endif
