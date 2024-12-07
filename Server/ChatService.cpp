@@ -22,7 +22,8 @@ ChatService::ChatService()
 	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
 	myHandleMap_.insert({ MSG_GROUP_CHAT, std::bind(&ChatService::chatGroup, this,
 	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
-
+	myHandleMap_.insert({ MSG_LOGINOUT, std::bind(&ChatService::loginout, this,
+	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
 
 }
 // 得到单例对象
@@ -93,6 +94,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			response["msgid"] = MSG_LOGIN_ACK;
 			response["errno"] = 0;
 			response["name"] = user.getname();
+			response["id"] = user.getid();
 			// 查询有没有离线消息
 			std::vector<std::string> vec = offlineMsgModel_.query(id);
 			if (!vec.empty())
@@ -118,6 +120,36 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 				}
 				response["friends"] = vec;
 			}
+			// 查询有没有群组消息
+			std::vector<Group> vecgroup = groupModel_.query(id);
+			if (!vecgroup.empty())
+			{
+				std::vector<std::string> vec;
+				for (auto& group : vecgroup)
+				{
+					// 拼接群组消息
+					Json jsgroup;
+					jsgroup["groupid"] = group.getid();
+					jsgroup["groupname"] = group.getname();
+					jsgroup["groupdesc"] = group.getdesc();
+					// 该群组的成员信息
+					std::vector<std::string> vec2;
+					for (auto& user : group.getusers())
+					{
+						Json jsuser;
+						jsuser["id"] = user.getid();
+						jsuser["name"] = user.getname();
+						jsuser["state"] = user.getstate();
+						jsuser["role"] = user.getRole();
+						vec2.push_back(jsuser.dump());
+					}
+					jsgroup["groupuser"] = vec2;
+
+					// 将本群组的信息进行打包
+					vec.push_back(jsgroup.dump());
+				}
+				response["group"] = vec;
+			}
 
 			conn->send(response.dump());
 		}
@@ -134,7 +166,28 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 	}
 
 }
+// 注销
+void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
+{
+	int id = js["id"].get<int>();
+	User user;
+	{
+		std::unique_lock<std::mutex> lock(connMutex_);
+		auto it = connMap_.find(id);
+		if (it != connMap_.end())
+		{
+			connMap_.erase(it);
+			// 关闭连接
+			conn->forceClose();
+			user.setid(id);
+		}
+	}
+	if (user.getid() != -1)
+	{
+		userModel_.updateState(user);
+	}
 
+}
 // 注册
 void ChatService::reg(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo::Timestamp receiveTime)
 {
@@ -203,7 +256,7 @@ void ChatService::clientCloseException(const muduo::net::TcpConnectionPtr& conn)
 void ChatService::oneChat(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
 {
 	// 获得要聊天的对象
-	int toid = js["to"].get<int>();
+	int toid = js["toid"].get<int>();
 	int id = js["id"].get<int>();
 	if (toid == id)
 	{

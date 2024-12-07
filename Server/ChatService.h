@@ -31,6 +31,10 @@ public:
 	void login(const muduo::net::TcpConnectionPtr& conn,
 		Json& js,
 		muduo::Timestamp receiveTime);
+	// 注销
+	void loginout(const muduo::net::TcpConnectionPtr& conn,
+		Json& js,
+		muduo::Timestamp receiveTime);
 	// 注册
 	void reg(const muduo::net::TcpConnectionPtr& conn,
 		Json& js,

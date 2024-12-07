@@ -1,0 +1,10 @@
+/Client/obj
+/Client/Client.vcxproj
+/Client/Client.vcxproj.user
+/Client/bin
+/Server/*.vcxproj
+/Server/*.user
+/Server/*
+/Server/.vs
+/Server/集群聊天服务器.sln
+
