@@ -1,18 +1,19 @@
-#include <iostream>
+
 #include "chatclient.h"
 
-int main(int argc, const char** argv)
+int main(int argc,  char** argv)
 {
 	if (argc < 3)
 	{
 		std::cout << "错的的输入" << "./Client.out ip port" << std::endl;
 		exit(-1);
 	}
+
 	std::string ip = argv[1];
 	int port = atoi(argv[2]);
 
 	ChatClient client(ip, port);
-	if (client.connect())
+	if (client.connectServer())
 	{
 		// 读入操作信息
 		while (1)

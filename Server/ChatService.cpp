@@ -8,22 +8,28 @@ ChatService::ChatService()
 	// 注册消息的回调函数
 	myHandleMap_.insert({ MSG_REG, std::bind(&ChatService::reg, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_LOGIN, std::bind(&ChatService::login, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_ONE_CHAT, std::bind(&ChatService::oneChat, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_ADD_FRIEND, std::bind(&ChatService::addFriend, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
-	myHandleMap_.insert({ MSG_DELETE_FRIEND, std::bind(&ChatService::deleteFriend, this,
-		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_CREATE_GROUP, std::bind(&ChatService::createGroup, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_ADD_GROUP, std::bind(&ChatService::addGroup, this,
 	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_GROUP_CHAT, std::bind(&ChatService::chatGroup, this,
 	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 	myHandleMap_.insert({ MSG_LOGINOUT, std::bind(&ChatService::loginout, this,
 	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
+
 
 }
 // 得到单例对象
@@ -71,7 +77,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			Json response;
 			response["msgid"] = MSG_LOGIN_ACK;
 			response["errno"] = 1;
-			response["errmsg"] = "账号已经登录,无需再次登录";
+			response["msgack"] = "账号已经登录,无需再次登录";
 			conn->send(response.dump());
 		}
 		else
@@ -95,6 +101,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			response["errno"] = 0;
 			response["name"] = user.getname();
 			response["id"] = user.getid();
+			response["state"] = user.getstate();
 			// 查询有没有离线消息
 			std::vector<std::string> vec = offlineMsgModel_.query(id);
 			if (!vec.empty())
@@ -161,7 +168,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 		Json response;
 		response["msgid"] = MSG_LOGIN_ACK;
 		response["errno"] = -1;
-		response["errmsg"] = "输入的账号或者密码错误";
+		response["msgack"] = "输入的账号或者密码错误";
 		conn->send(response.dump());
 	}
 
@@ -177,6 +184,11 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 		if (it != connMap_.end())
 		{
 			connMap_.erase(it);
+
+			js["errno"] = 0;
+			js["msgack"] = "注销登录成功";
+			conn->send(js.dump());
+
 			// 关闭连接
 			conn->forceClose();
 			user.setid(id);
@@ -207,8 +219,10 @@ void ChatService::reg(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo:
 		Json response;
 		response["msgid"] = MSG_REG_ACK;
 		response["errno"] = 0;
-		response["errmsg"] = "注册成功";
+		response["msgack"] = "注册成功";
 		response["id"] = user.getid();
+		response["name"] = user.getname();
+		response["state"] = user.getstate();
 		// 向客户端发送消息
 		conn->send(response.dump());
 	}
@@ -218,7 +232,7 @@ void ChatService::reg(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo:
 		Json response;
 		response["msgid"] = MSG_REG_ACK;
 		response["errno"] = -1;
-		response["errmsg"] = "注册失败";
+		response["msgack"] = "注册失败";
 		// 向客户端发送消息
 		conn->send(response.dump());
 	}
@@ -257,32 +271,29 @@ void ChatService::oneChat(const muduo::net::TcpConnectionPtr& conn,Json& js,mudu
 {
 	// 获得要聊天的对象
 	int toid = js["toid"].get<int>();
-	int id = js["id"].get<int>();
-	if (toid == id)
-	{
-		// 不能自己给自己发消息
-		return;
-	}
+	Json response;
 	{
 		std::unique_lock<std::mutex> lock(connMutex_);
-		auto ittoid = connMap_.find(toid);
-		auto itid = connMap_.find(id);
-		if (itid == connMap_.end() || itid->second != conn)
-		{
-			return;
-		}
-		if (ittoid != connMap_.end())
+		auto it = connMap_.find(toid);
+		if (it != connMap_.end())
 		{
 			// 找到了在线的对象
 			// 把消息传出去
-			ittoid->second->send(js.dump());
+			it->second->send(js.dump());
 			return;
 		}
 	}
 
 	// 存储离线消息
 	offlineMsgModel_.insert(toid, js.dump());
+	response["msgid"] = MSG_ONE_CHAT_ACK;
+	response["errno"] = 0;
+	response["toid"] = toid;
+	response["time"] = js["time"];
+	response["msgack"] = "发送消息成功";
+	response["msg"] = js["msg"];
 
+	conn->send(response.dump());
 }
 
 // 服务器异常终止处理用户的在线状态
@@ -300,14 +311,30 @@ void ChatService::addFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 	friendModel_.insert(id, friendid);
 	friendModel_.insert(friendid, id);
 
-}
-// 删除好友
-void ChatService::deleteFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, muduo::Timestamp receiveTime)
-{
-	int id = js["id"].get<int>();
-	int friendid = js["friendid"].get<int>();
-	friendModel_.remove(id, friendid);
-	friendModel_.remove(friendid, id);
+	User user = userModel_.query(id);
+	User friuser = userModel_.query(friendid);
+
+	js["errno"] = 0;
+	js["msgack"] = "添加好友成功";
+
+	js["state"] = user.getstate();
+	js["name"] = user.getname();
+
+	js["friendstate"] = friuser.getstate();
+	js["friendname"] = friuser.getname();
+
+	{
+		std::unique_lock<std::mutex> lock(connMutex_);
+		auto it = connMap_.find(friendid);
+		if (it != connMap_.end())
+		{
+			js["msgid"] = MSG_ADD_FRIEND_ACK;
+			it->second->send(js.dump());
+		}
+	}
+
+	js["msgid"] = MSG_ADD_FRIEND;
+	conn->send(js.dump());
 }
 
 // 创建群组
@@ -324,8 +351,24 @@ void ChatService::createGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,
 	{
 		// 将自己添加到群组之中 为 创建者
 		groupModel_.addGroup(userid, group.getid(), "creator");
+
+		User user = userModel_.query(userid);
+
+		js["errno"] = 0;
+		js["msgack"] = "创建群组成功";
+		js["groupid"] = group.getid();
+		
+		
+		js["name"] = user.getname();
+		js["state"] = user.getstate();
+		js["role"] = std::string("creator");
 	}
-	
+	else
+	{
+		js["errno"] = -1;
+		js["msgack"] = "创建群组失败";
+	}
+	conn->send(js.dump());
 }
 // 添加群组
 void ChatService::addGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
@@ -333,6 +376,50 @@ void ChatService::addGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 	int userid = js["id"].get<int>();
 	int groupid = js["groupid"].get<int>();
 	groupModel_.addGroup(userid, groupid, "normal");
+
+	User user =  userModel_.query(userid);
+
+	std::vector<int> vec1 = groupModel_.getCurGroupUsers(userid, groupid);
+	js["errno"] = 0;
+	js["msgack"] = "添加群组成功";
+	js["role"] = "normal";
+	js["state"] = user.getstate();
+	js["name"] = user.getname();
+	// 要知道这个群的信息
+	Group group = groupModel_.getgetCurGroupData(groupid);
+
+	js["groupname"] = group.getname();
+	js["groupdesc"] = group.getdesc();
+
+	{
+		std::unique_lock<std::mutex> lock(connMutex_);
+		for (auto& i : vec1)
+		{
+			auto it = connMap_.find(i);
+			if (it != connMap_.end())
+			{
+				js["msgid"] = MSG_ADD_GROUP_ACK;
+				it->second->send(js.dump());
+			}
+		}
+	}
+	
+	js["msgid"] = MSG_ADD_GROUP;
+
+	std::vector<std::string> vec2;
+	for (auto &user : group.getusers())
+	{
+		Json jsuser;
+		jsuser["id"] = user.getid();
+		jsuser["name"] = user.getname();
+		jsuser["state"] = user.getstate();
+		jsuser["role"] = user.getRole();
+
+		vec2.push_back(jsuser.dump());
+	}
+	js["groupuser"] = vec2;
+
+	conn->send(js.dump());
 }
 
 // 群组聊天
@@ -341,6 +428,7 @@ void ChatService::chatGroup(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 	int userid = js["id"].get<int>();
 	int groupid = js["groupid"].get<int>();
 
+	Json response;
 	std::vector<int> vecusers = groupModel_.getCurGroupUsers(userid, groupid);
 	
 	// 加锁
@@ -359,6 +447,15 @@ void ChatService::chatGroup(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 		}
 	}
 
+	response["msgid"] = MSG_GROUP_CHAT_ACK;
+	response["id"] = userid;
+	response["msg"] = js["msg"];
+	response["groupid"] = groupid;
+	response["errno"] = 0;
+	response["time"] = js["time"];
+	response["msgack"] = "群聊消息成功";
+
+	conn->send(response.dump());
 }
 
 

@@ -54,10 +54,6 @@ public:
 	void addFriend(const muduo::net::TcpConnectionPtr& conn,
 		Json& js,
 		muduo::Timestamp receiveTime);
-	// 删除好友
-	void deleteFriend(const muduo::net::TcpConnectionPtr& conn,
-		Json& js,
-		muduo::Timestamp receiveTime);
 	// 创建群组
 	void createGroup(const muduo::net::TcpConnectionPtr& conn,
 		Json& js,

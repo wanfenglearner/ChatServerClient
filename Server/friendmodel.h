@@ -13,8 +13,6 @@ class FriendModel
 public:
 	// 添加好友
 	void insert(int userid, int friendid);
-	// 删除好友
-	void remove(int userid, int friendid);
 
 	// 获得好友的信息
 	std::vector<User> query(int id);

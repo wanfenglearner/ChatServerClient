@@ -43,14 +43,4 @@ std::vector<User> FriendModel::query(int id)
 	}
 	return vec;
 }
-// 删除好友
-void FriendModel::remove(int userid, int friendid)
-{
-	char sql[1024] = { 0 };
-	sprintf(sql, "delete from friend where userid = %d and friendid = %d", userid, friendid);
-	MySQL mysql;
-	if (mysql.connect())
-	{
-		mysql.update(sql);
-	}
-}
+

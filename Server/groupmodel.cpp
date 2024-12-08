@@ -6,8 +6,8 @@
 bool GroupModel::createGroup(Group& group)
 {
 	char sql[1024] = { 0 };
-	sprintf(sql, "insert into allgroup(groupname, groupdesc) \
-		values('%s','%s')", group.getname().c_str(), group.getdesc().c_str());
+	sprintf(sql, "insert into allgroup(groupname, groupdesc)"
+		"values('%s','%s')", group.getname().c_str(), group.getdesc().c_str());
 
 	MySQL mysql;
 	if (mysql.connect())
@@ -111,4 +111,47 @@ std::vector<int> GroupModel::getCurGroupUsers(int userid, int groupid)
 		}
 	}
 	return vecid;
+}
+// 得到具体的群中的信息
+Group GroupModel::getgetCurGroupData(int groupid)
+{
+	char sql[1024] = { 0 };
+	sprintf(sql, "select groupname, groupdesc from allgroup where id = %d", groupid);
+
+	Group group;
+	group.setid(groupid);
+
+	MySQL mysql;
+	if (mysql.connect())
+	{
+		MYSQL_RES* res = mysql.query(sql);
+		if (res != nullptr)
+		{
+			MYSQL_ROW row = mysql_fetch_row(res);
+			group.setname(row[0]);
+			group.setdesc(row[1]);
+		}
+		mysql_free_result(res);
+
+		memset(sql, 0, sizeof(sql));
+		sprintf(sql, "select a.id, a.name, a.state, b.grouprole from user a \
+			inner join groupuser b on a.id = b.userid where groupid = %d", group.getid());
+		 res = mysql.query(sql);
+		if (res != nullptr)
+		{
+			MYSQL_ROW row;
+			while ((row = mysql_fetch_row(res)) != nullptr)
+			{
+				GroupUser guser;
+				guser.setid(atoi(row[0]));
+				guser.setname(row[1]);
+				guser.setstate(row[2]);
+				guser.setRole(row[3]);
+				group.getusers().push_back(guser);
+			}
+			mysql_free_result(res);
+		}
+	}
+	
+	return group;
 }
