@@ -43,4 +43,27 @@ std::vector<User> FriendModel::query(int id)
 	}
 	return vec;
 }
+// 得到好友的id
+std::vector<int> FriendModel::getId(int userid)
+{
+	char sql[1024] = { 0 };
+	sprintf(sql, "select friendid from friend where userid = %d", userid);
+	MySQL mysql;
+	std::vector<int> vec;
+	if (mysql.connect())
+	{
+		MYSQL_RES* res = mysql.query(sql);
+		if (res != nullptr)
+		{
+			MYSQL_ROW row;
+
+			while ((row = mysql_fetch_row(res)) != nullptr)
+			{
+				vec.push_back(std::stoi(row[0]));
+			}
+			mysql_free_result(res);
+		}
+	}
+	return vec;
+}
 

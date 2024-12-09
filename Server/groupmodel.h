@@ -27,6 +27,7 @@ public:
 	// 得到具体的群中的信息
 	Group getgetCurGroupData(int groupid);
 
+
 private:
 
 

@@ -17,6 +17,8 @@ public:
 	// 获得好友的信息
 	std::vector<User> query(int id);
 
+	// 得到好友的id
+	std::vector<int> getId(int userid);
 
 };
 

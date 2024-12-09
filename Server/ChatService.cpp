@@ -177,7 +177,13 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
 {
 	int id = js["id"].get<int>();
+	std::vector<int>friendid = friendModel_.getId(id);
+	std::vector<Group> groups = groupModel_.query(id);
+
+	User users = userModel_.query(id);
 	User user;
+	js["name"] = users.getname();
+
 	{
 		std::unique_lock<std::mutex> lock(connMutex_);
 		auto it = connMap_.find(id);
@@ -188,12 +194,36 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 			js["errno"] = 0;
 			js["msgack"] = "注销登录成功";
 			conn->send(js.dump());
-
-			// 关闭连接
-			conn->forceClose();
 			user.setid(id);
 		}
+		// 查找该用户的所有朋友向他们发送下线消息
+		for (auto& i : friendid)
+		{
+			auto it = connMap_.find(i);
+			if (it != connMap_.end())
+			{
+				js["msgid"] = MSG_LOGINOUT_ACK;
+				it->second->send(js.dump());
+			}
+		}
+		// 查找该用户的所有群友向他们发送下线消息
+		for (auto& pgroup : groups)
+		{
+			for (auto& puser : pgroup.getusers())
+			{
+				auto it = connMap_.find(puser.getid());
+				std::cout << "***************************" << std::endl;
+				//std::cout << it->first << std::endl;
+				std::cout << "***************************" << std::endl;
+				if (it != connMap_.end())
+				{
+					js["msgid"] = MSG_LOGINOUT_ACK;
+					it->second->send(js.dump());
+				}
+			}
+		}
 	}
+
 	if (user.getid() != -1)
 	{
 		userModel_.updateState(user);
@@ -310,7 +340,7 @@ void ChatService::addFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 	int friendid = js["friendid"].get<int>();
 	friendModel_.insert(id, friendid);
 	friendModel_.insert(friendid, id);
-
+	
 	User user = userModel_.query(id);
 	User friuser = userModel_.query(friendid);
 

@@ -11,7 +11,7 @@ ChatClient::ChatClient(std::string ip, int port)
 {
 	// 初始化信号量
 	sem_init(&rwsem_, 0, 0);
-
+	sem_init(&commandsem_, 0, 0);
 
 	handlerCommamdMap_.insert({ "onechat" ,"一对一聊天 格式 onechat:toid:msg" });
 	handlerCommamdMap_.insert({ "help" ,"查看当前支持的命令 格式 help" });
@@ -41,6 +41,7 @@ ChatClient::~ChatClient()
 		close(cfd_);
 	}
 	sem_destroy(&rwsem_);
+	sem_destroy(&commandsem_);
 }
 
 // 连接服务器
@@ -174,7 +175,7 @@ void ChatClient::recvTask()
 		case MSG_ONE_CHAT_ACK:	// 一对一聊天响应
 			doOneChatResponse(jsreponse);
 			break;
-		case MSG_ADD_FRIEND:	// 添加朋友响应
+		case MSG_ADD_FRIEND:	// 添加朋友
 			doAddFriend(jsreponse);
 			break;
 		case MSG_ADD_FRIEND_ACK:	// 添加朋友响应
@@ -200,8 +201,11 @@ void ChatClient::recvTask()
 			doGroupChatResponse(jsreponse);
 			break;
 			
-		case MSG_LOGINOUT:		// 注销响应
-			doLoginouttResponse(jsreponse);
+		case MSG_LOGINOUT:		// 注销
+			doLoginout(jsreponse);
+			break;
+		case MSG_LOGINOUT_ACK:		// 注销响应
+			doLoginoutResponse(jsreponse);
 			break;
 		}
 
@@ -377,6 +381,8 @@ void ChatClient::doAddFriend(Json& js)
 		friuser.setstate(js["friendstate"].get<std::string>());
 		friends_.push_back(friuser);
 	}
+
+
 }
 
 // 添加好友响应的处理函数
@@ -402,6 +408,8 @@ void ChatClient::doAddFriendResponse(Json& js)
 		friuser.setstate(js["state"].get<std::string>());
 		friends_.push_back(friuser);
 	}
+
+
 }
 
 // 创建群组响应的处理函数
@@ -434,7 +442,10 @@ void ChatClient::doCreateGroupResponse(Json& js)
 		guser.setstate(js["state"].get<std::string>());
 		guser.setRole(js["role"].get<std::string>());
 		group.getusers().push_back(guser);
+
+		group_.push_back(group);
 	}
+
 }
 
 // 添加群组处理函数
@@ -473,6 +484,7 @@ void ChatClient::doAddGroup(Json& js)
 
 		group_.push_back(group);
 	}
+
 }
 
 // 添加群组响应的处理函数
@@ -515,6 +527,7 @@ void ChatClient::doAddGroupResponse(Json& js)
 			it->getusers().push_back(gruser);
 		}
 	}
+
 }
 
 // 群组聊天的处理函数
@@ -584,13 +597,53 @@ void ChatClient::doOneChatResponse(Json& js)
 }
 
 // 注销响应的处理函数
-void ChatClient::doLoginouttResponse(Json& js)
+void ChatClient::doLoginout(Json& js)
 {
-	std::cout << js["msgack"] << std::endl;
+	if (js["errno"].get<int>() == 0)
+	{
+		isMainMenuRunning_ = false;
+		sem_post(&commandsem_);
+	}
+}
+void ChatClient::doLoginoutResponse(Json& js)
+{
+	// 得到下线的id
+	int id = js["id"].get<int>();
+	std::string name = js["name"].get<std::string>();
+
+	char buf[1024] = { 0 };
+
+	// 取好友列表寻找这个下线id
+	for (auto& it : friends_)
+	{
+		if (it.getid() == id)
+		{
+			sprintf(buf, "账号:%d 好友:%s 下线", id, name.c_str());
+			std::cout << buf << std::endl;
+
+			it.setstate("offline");
+		}
+	}
+
+	// 取群友列表寻找这个下线id
+	for (auto it = group_.begin(); it != group_.end(); ++it)
+	{
+		
+		for (auto &pit : it->getusers())
+		{
+			if (pit.getid() == id)
+			{
+				sprintf(buf, "账号:%d 群友:%s 下线", id, name.c_str());
+				std::cout << buf << std::endl;
+				pit.setstate("offline");
+			}
+		}
+	}
 }
 
-
 //--------------------主菜单操作函数----------------
+
+
 
 // 主菜单页面
 void ChatClient::mainMenu()
@@ -617,12 +670,13 @@ void ChatClient::mainMenu()
 		if (it != handlerMap_.end())
 		{
 			it->second(commandbuf.substr(index + 1));
-
 		}
 		else
 		{
 			std::cout << "无效的命令" << std::endl;
 		}
+		
+		
 	}
 }
 // 查看当前支持的命令
@@ -637,6 +691,8 @@ void ChatClient::help(std::string)
 	}
 	std::cout << std::endl;
 	std::cout << "---------------------------------" << std::endl;
+
+
 }
 // 一对一聊天
 void ChatClient::onechat(std::string s)
@@ -661,6 +717,7 @@ void ChatClient::onechat(std::string s)
 
 	sendMsg(request.dump());
 
+
 }
 // 添加朋友
 void ChatClient::addfriend(std::string s)
@@ -674,6 +731,8 @@ void ChatClient::addfriend(std::string s)
 	
 	
 	sendMsg(request.dump());
+
+
 }
 // 创建群组
 void ChatClient::creategroup(std::string s)
@@ -733,6 +792,9 @@ void ChatClient::groupchat(std::string s)
 	response["time"] = getCurTime();
 
 	sendMsg(response.dump());
+
+
+
 }
 // 注销登录
 void ChatClient::loginout(std::string s)
@@ -743,10 +805,14 @@ void ChatClient::loginout(std::string s)
 	response["name"] = user_.getname();
 
 	sendMsg(response.dump());
+
+	sem_wait(&commandsem_);
 }
 // 显示当前账号信息
 void ChatClient::showUserData(std::string s)
 {
+
+
 	char buf[1024] = { 0 };
 	std::cout << "*************个人信息*************" << std::endl;
 	sprintf(buf, "-------账号:%d 姓名:%s-------", user_.getid(), user_.getname().c_str());
@@ -790,4 +856,6 @@ void ChatClient::showUserData(std::string s)
 	}
 	std::cout << "---------------------------------" << std::endl;
 	std::cout << "*********************************" << std::endl;
+
+
 }

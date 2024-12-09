@@ -69,8 +69,10 @@ private:
 	// 一对一聊天响应的处理函数
 	void doOneChatResponse(Json& js);
 
+	// 注销的处理函数
+	void doLoginout(Json& js);
 	// 注销响应的处理函数
-	void doLoginouttResponse(Json& js);
+	void doLoginoutResponse(Json& js);
 	
 private:
 	// 主菜单页面
@@ -104,15 +106,15 @@ private:
 	int port_;			// 端口号
 	int cfd_;		// 连接的通信描述
 	
-	sem_t rwsem_;
-
+	sem_t rwsem_;		// 接受线程recvTask 保证可以处理注册和登录
+	sem_t commandsem_;
 	User user_;		// 当前用户的信息
 	std::vector<User> friends_;	// 当前用户的朋友
 	std::vector<Group> group_;	// 当前用户的群组
 
 	std::atomic_bool isLoginSuccess_;	// 是否登录成功
 
-	bool isMainMenuRunning_;	// 主菜单是否运行
+	std::atomic_bool isMainMenuRunning_;	// 主菜单是否运行
 	// 支持的命令
 	std::unordered_map<std::string, std::string> handlerCommamdMap_;
 	// 不同的命令对应不同的处理函数
