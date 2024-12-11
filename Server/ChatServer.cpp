@@ -14,7 +14,7 @@ ChatServer::ChatServer(muduo::net::EventLoop* loop,
 		std::placeholders::_3
 	));
 
-	server_.setThreadNum(4);		// 线程的数量
+	server_.setThreadNum(10);		// 线程的数量
 
 }
 

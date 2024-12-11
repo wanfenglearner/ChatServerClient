@@ -1,7 +1,7 @@
 #include "ChatService.h"
 #include "user.h"
-
-
+#include <unordered_set>
+#include <set>
 // 构造函数
 ChatService::ChatService()
 {
@@ -157,8 +157,59 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 				}
 				response["group"] = vec;
 			}
-
+			std::cout << "***************************" << std::endl;
 			conn->send(response.dump());
+
+			std::cout << "-----------------" << std::endl;
+
+			// 向好友们发送上线信息
+			std::vector<int>friendid = friendModel_.getId(id);
+			std::vector<Group> groups = groupModel_.query(id);
+
+
+			{
+				std::unique_lock<std::mutex> lock(connMutex_);
+
+				std::unordered_set<muduo::net::TcpConnectionPtr> unset;
+
+
+				// 查找该用户的所有朋友向他们发送上线消息
+				for (auto& i : friendid)
+				{
+					auto it = connMap_.find(i);
+					if (it != connMap_.end())
+					{
+						unset.insert(it->second);
+					}
+				}
+				// 查找该用户的所有群友向他们发送上线消息
+				for (auto& pgroup : groups)
+				{
+					for (auto& puser : pgroup.getusers())
+					{
+						// 防止给自己发送上线消息
+						if (puser.getid() == id)
+						{
+							continue;
+						}
+						auto it = connMap_.find(puser.getid());
+						if (it != connMap_.end())
+						{
+							unset.insert(it->second);
+						}
+					}
+				}
+
+				// 将消息发送出去
+				for (auto& pconn : unset)
+				{
+					Json response1;
+					response1["msgid"] = MSG_FRIENDS_LOGIN;
+					response1["id"] = id;
+					pconn->send(response1.dump());
+				}
+			}
+
 		}
 	}
 	else
@@ -182,8 +233,7 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 
 	User users = userModel_.query(id);
 	User user;
-	js["name"] = users.getname();
-
+	
 	{
 		std::unique_lock<std::mutex> lock(connMutex_);
 		auto it = connMap_.find(id);
@@ -194,16 +244,19 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 			js["errno"] = 0;
 			js["msgack"] = "注销登录成功";
 			conn->send(js.dump());
+			conn->forceClose();
 			user.setid(id);
 		}
+		std::unordered_set<muduo::net::TcpConnectionPtr> unset;
+
+
 		// 查找该用户的所有朋友向他们发送下线消息
 		for (auto& i : friendid)
 		{
 			auto it = connMap_.find(i);
 			if (it != connMap_.end())
 			{
-				js["msgid"] = MSG_LOGINOUT_ACK;
-				it->second->send(js.dump());
+				unset.insert(it->second);
 			}
 		}
 		// 查找该用户的所有群友向他们发送下线消息
@@ -212,15 +265,19 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 			for (auto& puser : pgroup.getusers())
 			{
 				auto it = connMap_.find(puser.getid());
-				std::cout << "***************************" << std::endl;
-				//std::cout << it->first << std::endl;
-				std::cout << "***************************" << std::endl;
 				if (it != connMap_.end())
 				{
-					js["msgid"] = MSG_LOGINOUT_ACK;
-					it->second->send(js.dump());
+					unset.insert(it->second);
 				}
 			}
+		}
+		// 将消息发送出去
+		for (auto& pconn : unset)
+		{
+			Json response;
+			response["msgid"] = MSG_LOGINOUT_ACK;
+			response["id"] = id;
+			pconn->send(response.dump());
 		}
 	}
 

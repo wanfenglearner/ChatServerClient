@@ -20,10 +20,15 @@ enum MSG_TYPE
 	MSG_GROUP_CHAT_ACK,		// 群组聊天响应
 	MSG_ADD_GROUP,			// 加入群组 
 	MSG_ADD_GROUP_ACK,		// 加入群组响应
-	MSG_CREATE_GROUP		// 创建群组
-	
+	MSG_CREATE_GROUP,		// 创建群组
+
+	MSG_FRIENDS_LOGIN,		// 朋友上线,包括群友和好友
+
+
 };
 
+// 缓冲区的大小
+static const int MaxCache = 5120;
 
 #endif 
 

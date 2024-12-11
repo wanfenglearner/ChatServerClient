@@ -1,6 +1,6 @@
 
 #include "chatclient.h"
-
+#include <unordered_set>
 
 // 构造函数
 ChatClient::ChatClient(std::string ip, int port)
@@ -83,7 +83,7 @@ void ChatClient::login()
 	std::string password;
 	std::cout << "输入账号-> ";
 	std::cin >> id;
-	std::cin.get();
+	std::cin.ignore(MaxCache, '\n');
 	std::cout << "输入密码-> ";
 	getline(std::cin, password);
 
@@ -145,7 +145,8 @@ void ChatClient::recvTask()
 {
 	while (1)
 	{
-		char buf[1024] = { 0 };
+		
+		char buf[MaxCache] = { 0 };
 		int len = recv(cfd_, buf, sizeof(buf), 0);
 		if (len == -1 || len == 0)
 		{
@@ -207,13 +208,16 @@ void ChatClient::recvTask()
 		case MSG_LOGINOUT_ACK:		// 注销响应
 			doLoginoutResponse(jsreponse);
 			break;
+		case MSG_FRIENDS_LOGIN:		// 朋友上线的响应
+			doFriendsLogin(jsreponse);
+			break;
 		}
 
 	}
 }
 
 // 专门用来发送消息的函数
-bool ChatClient::sendMsg(std::string msg)
+ bool ChatClient::sendMsg(std::string msg)
 {
 	int len = send(cfd_, msg.c_str(), strlen(msg.c_str()) + 1, 0);
 	if (len == -1)
@@ -233,7 +237,7 @@ std::string ChatClient::getCurTime()
 {
 	auto tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	struct tm* ptm = localtime(&tt);
-	char buf[1024] = {0};
+	char buf[MaxCache] = {0};
 	sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d",
 		(int)ptm->tm_year + 1900, (int)ptm->tm_mon + 1, (int)ptm->tm_mday,
 		(int)ptm->tm_hour, (int)ptm->tm_min, (int)ptm->tm_sec);
@@ -270,7 +274,7 @@ void ChatClient::doLogResponse(Json& js)
 		{
 			Json jsmsg = Json::parse(msg);
 			int msgid = jsmsg["msgid"].get<int>();
-			char buf[1024] = { 0 };
+			char buf[MaxCache] = { 0 };
 			if (msgid == MSG_ONE_CHAT)
 			{
 				sprintf(buf, "个人消息:\n%s->id:%d 姓名:%s 消息:%s",
@@ -353,7 +357,7 @@ void ChatClient::doRegResponse(Json& js)
 		return;
 	}
 
-	char buf[1024] = { 0 };
+	char buf[MaxCache] = { 0 };
 	sprintf(buf, "***********注册成功***********\n"
 		"---------你的账号:%d 注册的姓名:%s---------"
 		, js["id"].get<int>(), js["name"].get<std::string>().c_str());
@@ -369,7 +373,7 @@ void ChatClient::doAddFriend(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-10s 添加的好友:%d",
 			js["msgack"].get<std::string>().c_str(), js["friendid"].get<int>());
 		std::cout << buf << std::endl;
@@ -394,7 +398,7 @@ void ChatClient::doAddFriendResponse(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-10s 账号:%d 姓名:%s 添加了你",
 			js["msgack"].get<std::string>().c_str(), 
 			js["id"].get<int>(),
@@ -421,7 +425,7 @@ void ChatClient::doCreateGroupResponse(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-10s 群号:%d, 群名:%s 群描述:%s",
 			js["msgack"].get<std::string>().c_str(), 
 			js["groupid"].get<int>(),
@@ -457,7 +461,7 @@ void ChatClient::doAddGroup(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-10s 加入群号:%d",
 			js["msgack"].get<std::string>().c_str(),
 			js["groupid"].get<int>()
@@ -496,11 +500,12 @@ void ChatClient::doAddGroupResponse(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
-		sprintf(buf, "%-10s 群号:%d %d加入了群",
+		char buf[MaxCache] = { 0 };
+		sprintf(buf, "%-10s 群号:%d 账号:%d 姓名:%s 加入了群",
 			js["msgack"].get<std::string>().c_str(),
 			js["groupid"].get<int>(),
-			js["id"].get<int>()
+			js["id"].get<int>(),
+			js["name"].get<std::string>().c_str()
 		);
 		std::cout << buf << std::endl;
 
@@ -533,7 +538,7 @@ void ChatClient::doAddGroupResponse(Json& js)
 // 群组聊天的处理函数
 void ChatClient::doGroupChat(Json& js)
 {
-	char buf[1024] = { 0 };
+	char buf[MaxCache] = { 0 };
 	sprintf(buf, "群消息:\n%s->群号:%d id:%d 姓名:%s 消息:%s",
 		js["time"].get<std::string>().c_str(),
 		js["groupid"].get<int>(),
@@ -553,7 +558,7 @@ void ChatClient::doGroupChatResponse(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-10s %-10s 向群号:%d 发的消息:%s",
 			js["msgack"].get<std::string>().c_str(),
 			js["time"].get<std::string>().c_str(),
@@ -566,7 +571,7 @@ void ChatClient::doGroupChatResponse(Json& js)
 
 void ChatClient::doOneChat(Json& js)
 {
-	char buf[1024] = { 0 };
+	char buf[MaxCache] = { 0 };
 	sprintf(buf, "个人消息:\n%s->id:%d 姓名:%s 消息:%s",
 		js["time"].get<std::string>().c_str(),
 		js["id"].get<int>(),
@@ -585,7 +590,7 @@ void ChatClient::doOneChatResponse(Json& js)
 	}
 	else
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-10s %-10s 向账号:%d 发的消息:%s",
 			js["msgack"].get<std::string>().c_str(),
 			js["time"].get<std::string>().c_str(),
@@ -602,40 +607,70 @@ void ChatClient::doLoginout(Json& js)
 	if (js["errno"].get<int>() == 0)
 	{
 		isMainMenuRunning_ = false;
-		sem_post(&commandsem_);
+
 	}
 }
+
+
+
 void ChatClient::doLoginoutResponse(Json& js)
 {
-	// 得到下线的id
-	int id = js["id"].get<int>();
-	std::string name = js["name"].get<std::string>();
+	char buf[MaxCache] = { 0 };
 
-	char buf[1024] = { 0 };
+	int id = js["id"].get<int>();
 
 	// 取好友列表寻找这个下线id
 	for (auto& it : friends_)
 	{
-		if (it.getid() == id)
+		if (it.getid() == id )
 		{
-			sprintf(buf, "账号:%d 好友:%s 下线", id, name.c_str());
+			sprintf(buf, "账号:%d 好友:%s 下线", id, it.getname().c_str());
 			std::cout << buf << std::endl;
-
 			it.setstate("offline");
 		}
 	}
-
 	// 取群友列表寻找这个下线id
 	for (auto it = group_.begin(); it != group_.end(); ++it)
 	{
-		
-		for (auto &pit : it->getusers())
+		for (auto& pit : it->getusers())
 		{
-			if (pit.getid() == id)
+			if (pit.getid() == id )
 			{
-				sprintf(buf, "账号:%d 群友:%s 下线", id, name.c_str());
+				sprintf(buf, "群号:%d 账号:%d 群友:%s 下线", it->getid(), id, pit.getname().c_str());
 				std::cout << buf << std::endl;
 				pit.setstate("offline");
+			}
+		}
+	}
+	
+}
+
+// 处理朋友上线的响应消息
+void ChatClient::doFriendsLogin(Json& js)
+{
+	char buf[MaxCache] = { 0 };
+	int id = js["id"].get<int>();
+	// 取好友列表寻找这个上线id
+	for (auto& it : friends_)
+	{
+		if (it.getid() == id)
+		{
+			sprintf(buf, "账号:%d 好友:%s 上线", id, it.getname().c_str());
+			std::cout << buf << std::endl;
+			it.setstate("online");
+		}
+	}
+	// 取群友列表寻找这个下线id
+	for (auto it = group_.begin(); it != group_.end(); ++it)
+	{
+
+		for (auto& pit : it->getusers())
+		{
+			if (pit.getid() == id )
+			{
+				sprintf(buf, "群号:%d 账号:%d 群友:%s 上线", it->getid(), id, pit.getname().c_str());
+				std::cout << buf << std::endl;
+				pit.setstate("online");
 			}
 		}
 	}
@@ -685,7 +720,7 @@ void ChatClient::help(std::string)
 	std::cout << "-------------帮助文档-------------" << std::endl;
 	for (auto& p : handlerCommamdMap_)
 	{
-		char buf[1024] = { 0 };
+		char buf[MaxCache] = { 0 };
 		sprintf(buf, "%-20s %-30s", p.first.c_str(), p.second.c_str());
 		std::cout << buf << std::endl;
 	}
@@ -806,14 +841,13 @@ void ChatClient::loginout(std::string s)
 
 	sendMsg(response.dump());
 
-	sem_wait(&commandsem_);
 }
 // 显示当前账号信息
 void ChatClient::showUserData(std::string s)
 {
 
 
-	char buf[1024] = { 0 };
+	char buf[MaxCache] = { 0 };
 	std::cout << "*************个人信息*************" << std::endl;
 	sprintf(buf, "-------账号:%d 姓名:%s-------", user_.getid(), user_.getname().c_str());
 	std::cout << buf << std::endl;

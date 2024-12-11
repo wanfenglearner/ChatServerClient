@@ -71,8 +71,10 @@ private:
 
 	// 注销的处理函数
 	void doLoginout(Json& js);
-	// 注销响应的处理函数
 	void doLoginoutResponse(Json& js);
+
+	// 处理朋友上线的响应消息
+	void doFriendsLogin(Json& js);
 	
 private:
 	// 主菜单页面
