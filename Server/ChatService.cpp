@@ -244,7 +244,7 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 			js["errno"] = 0;
 			js["msgack"] = "注销登录成功";
 			conn->send(js.dump());
-			conn->forceClose();
+			//conn->forceClose();
 			user.setid(id);
 		}
 		std::unordered_set<muduo::net::TcpConnectionPtr> unset;

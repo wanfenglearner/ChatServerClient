@@ -606,8 +606,12 @@ void ChatClient::doLoginout(Json& js)
 {
 	if (js["errno"].get<int>() == 0)
 	{
+		std::cout << js["msgack"] << std::endl;
 		isMainMenuRunning_ = false;
+		sem_post(&commandsem_);
 
+		friends_.clear();
+		group_.clear();
 	}
 }
 
@@ -841,6 +845,7 @@ void ChatClient::loginout(std::string s)
 
 	sendMsg(response.dump());
 
+	sem_wait(&commandsem_);
 }
 // 显示当前账号信息
 void ChatClient::showUserData(std::string s)
