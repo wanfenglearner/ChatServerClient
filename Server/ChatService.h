@@ -16,6 +16,8 @@
 #include "usermodel.h"
 #include "friendmodel.h"
 #include "groupmodel.h"
+#include "redis.h"
+
 // 使用命名空间包含 json
 using Json = nlohmann::json;
 
@@ -67,6 +69,9 @@ public:
 		Json& js,
 		muduo::Timestamp receiveTim);
 private:
+	// redis的回调函数
+	void sendRedisMsg(int id, std::string msg);
+private:
 	// 构造函数
 	ChatService();
 private:
@@ -85,6 +90,9 @@ private:
 	FriendModel friendModel_;
 	// 操作数据库 allgroup 和 groupuser
 	GroupModel groupModel_;
+
+	// 操作redis
+	Redis redis_;
 };
 
 #endif

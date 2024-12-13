@@ -11,11 +11,21 @@ void handler(int)
 
 }
 
-int main()
+int main(int argc, char** argv)
 {
+	if (argc < 3)
+	{
+		std::cout << "错的的输入" << "./Server.out ip port" << std::endl;
+		exit(-1);
+	}
+
+	// 读到 ip + 端口
+	std::string ip = argv[1];
+	int port = std::stoi(argv[2]);
+
 	signal(SIGINT, handler);
 	muduo::net::EventLoop loop;
-	muduo::net::InetAddress addr("127.0.0.2", 8989);
+	muduo::net::InetAddress addr(ip, port);
 	ChatServer server(&loop, addr, "ChatServer");
 	server.start();
 	loop.loop();

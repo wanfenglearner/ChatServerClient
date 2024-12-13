@@ -31,6 +31,11 @@ ChatService::ChatService()
 	std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) });
 
 
+	if (redis_.connect())
+	{
+		redis_.initMsgCallBack(std::bind(&ChatService::sendRedisMsg, this,
+			std::placeholders::_1, std::placeholders::_2));
+	}
 }
 // 得到单例对象
 ChatService* ChatService::instance()
@@ -87,6 +92,8 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			user.setstate("online");
 			userModel_.updateState(user);
 
+			// 订阅通道
+			redis_.subscribe(id);
 
 			// 记录此用户对应的连接
 			{
@@ -157,29 +164,32 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 				}
 				response["group"] = vec;
 			}
-			std::cout << "***************************" << std::endl;
 			conn->send(response.dump());
 
-			std::cout << "-----------------" << std::endl;
 
 			// 向好友们发送上线信息
-			std::vector<int>friendid = friendModel_.getId(id);
+			std::vector<User>friends = friendModel_.query(id);
 			std::vector<Group> groups = groupModel_.query(id);
-
 
 			{
 				std::unique_lock<std::mutex> lock(connMutex_);
 
-				std::unordered_set<muduo::net::TcpConnectionPtr> unset;
+				std::set<muduo::net::TcpConnectionPtr> setConn;
+				std::set<int> setChannel;
 
 
 				// 查找该用户的所有朋友向他们发送上线消息
-				for (auto& i : friendid)
+				for (auto& i : friends)
 				{
-					auto it = connMap_.find(i);
+					auto it = connMap_.find(i.getid());
 					if (it != connMap_.end())
 					{
-						unset.insert(it->second);
+						setConn.insert(it->second);
+					}
+					// 不在同一个服务器
+					else if (i.getstate() == "online")
+					{
+						setChannel.insert(i.getid());
 					}
 				}
 				// 查找该用户的所有群友向他们发送上线消息
@@ -195,18 +205,30 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 						auto it = connMap_.find(puser.getid());
 						if (it != connMap_.end())
 						{
-							unset.insert(it->second);
+							setConn.insert(it->second);
+						}
+						// 不在同一个服务器
+						else if (puser.getstate() == "online")
+						{
+							setChannel.insert(puser.getid());
 						}
 					}
 				}
 
 				// 将消息发送出去
-				for (auto& pconn : unset)
+				for (auto& pconn : setConn)
 				{
-					Json response1;
-					response1["msgid"] = MSG_FRIENDS_LOGIN;
-					response1["id"] = id;
-					pconn->send(response1.dump());
+					Json responses;
+					responses["msgid"] = MSG_FRIENDS_LOGIN;
+					responses["id"] = id;
+					pconn->send(responses.dump());
+				}
+				for (auto& pchannel : setChannel)
+				{
+					Json responses;
+					responses["msgid"] = MSG_FRIENDS_LOGIN;
+					responses["id"] = id;
+					redis_.publish(pchannel, responses.dump());
 				}
 			}
 
@@ -228,7 +250,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,muduo::Timestamp receiveTime)
 {
 	int id = js["id"].get<int>();
-	std::vector<int>friendid = friendModel_.getId(id);
+	std::vector<User>friends = friendModel_.query(id);
 	std::vector<Group> groups = groupModel_.query(id);
 
 	User users = userModel_.query(id);
@@ -244,19 +266,25 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 			js["errno"] = 0;
 			js["msgack"] = "注销登录成功";
 			conn->send(js.dump());
-			//conn->forceClose();
 			user.setid(id);
+			// 取消订阅的通道
+			redis_.unsubscribe(id);
 		}
-		std::unordered_set<muduo::net::TcpConnectionPtr> unset;
-
+		std::set<muduo::net::TcpConnectionPtr> setConn;
+		std::set<int> setChannel;
 
 		// 查找该用户的所有朋友向他们发送下线消息
-		for (auto& i : friendid)
+		for (auto& i : friends)
 		{
-			auto it = connMap_.find(i);
+			auto it = connMap_.find(i.getid());
 			if (it != connMap_.end())
 			{
-				unset.insert(it->second);
+				setConn.insert(it->second);
+			}
+			// 不在同一个服务器
+			else if (i.getstate() == "online")
+			{
+				setChannel.insert(i.getid());
 			}
 		}
 		// 查找该用户的所有群友向他们发送下线消息
@@ -264,20 +292,37 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 		{
 			for (auto& puser : pgroup.getusers())
 			{
+				// 防止给自己发送下线消息
+				if (puser.getid() == id)
+				{
+					continue;
+				}
 				auto it = connMap_.find(puser.getid());
 				if (it != connMap_.end())
 				{
-					unset.insert(it->second);
+					setConn.insert(it->second);
+				}
+				// 不在同一个服务器
+				else if (puser.getstate() == "online")
+				{
+					setChannel.insert(puser.getid());
 				}
 			}
 		}
 		// 将消息发送出去
-		for (auto& pconn : unset)
+		for (auto& pconn : setConn)
 		{
 			Json response;
 			response["msgid"] = MSG_LOGINOUT_ACK;
 			response["id"] = id;
 			pconn->send(response.dump());
+		}
+		for (auto& pchannel : setChannel)
+		{
+			Json response;
+			response["msgid"] = MSG_LOGINOUT_ACK;
+			response["id"] = id;
+			redis_.publish(pchannel, response.dump());
 		}
 	}
 
@@ -370,9 +415,21 @@ void ChatService::oneChat(const muduo::net::TcpConnectionPtr& conn,Json& js,mudu
 			return;
 		}
 	}
+	
+	// 查看聊天好友是否在线
+	User user = userModel_.query(toid);
+	if (user.getstate() == "online")
+	{
+		// 说明不在同一台服务器
+		redis_.publish(toid, js.dump());
 
-	// 存储离线消息
-	offlineMsgModel_.insert(toid, js.dump());
+	}
+	else
+	{
+		// 存储离线消息
+		offlineMsgModel_.insert(toid, js.dump());
+		
+	}
 	response["msgid"] = MSG_ONE_CHAT_ACK;
 	response["errno"] = 0;
 	response["toid"] = toid;
@@ -417,6 +474,11 @@ void ChatService::addFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 		{
 			js["msgid"] = MSG_ADD_FRIEND_ACK;
 			it->second->send(js.dump());
+		}
+		else if (friuser.getstate() == "online")
+		{
+			js["msgid"] = MSG_ADD_FRIEND_ACK;
+			redis_.publish(friendid, js.dump());
 		}
 	}
 
@@ -466,7 +528,10 @@ void ChatService::addGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 
 	User user =  userModel_.query(userid);
 
-	std::vector<int> vec1 = groupModel_.getCurGroupUsers(userid, groupid);
+	//// 得到这个群的群友信息
+	//std::vector<int> vec1 = groupModel_.getCurGroupUsers(userid, groupid);
+
+
 	js["errno"] = 0;
 	js["msgack"] = "添加群组成功";
 	js["role"] = "normal";
@@ -480,13 +545,22 @@ void ChatService::addGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 
 	{
 		std::unique_lock<std::mutex> lock(connMutex_);
-		for (auto& i : vec1)
+		for (auto& i : group.getusers())
 		{
-			auto it = connMap_.find(i);
+			if (i.getid() == userid)
+			{
+				continue;
+			}
+			auto it = connMap_.find(i.getid());
 			if (it != connMap_.end())
 			{
 				js["msgid"] = MSG_ADD_GROUP_ACK;
 				it->second->send(js.dump());
+			}
+			else if (i.getstate() == "oneline")
+			{
+				js["msgid"] = MSG_ADD_GROUP_ACK;
+				redis_.publish(i.getid(), js.dump());
 			}
 		}
 	}
@@ -516,21 +590,30 @@ void ChatService::chatGroup(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 	int groupid = js["groupid"].get<int>();
 
 	Json response;
-	std::vector<int> vecusers = groupModel_.getCurGroupUsers(userid, groupid);
+	// 要知道这个群的信息
+	Group group = groupModel_.getgetCurGroupData(groupid);
 	
 	// 加锁
 	std::unique_lock<std::mutex> lock(connMutex_);
-	for (auto& id : vecusers)
+	for (auto& users : group.getusers())
 	{
-		auto it = connMap_.find(id);
+		if (users.getid() == userid)
+		{
+			continue;
+		}
+		auto it = connMap_.find(users.getid());
 		if (it != connMap_.end())
 		{
 			it->second->send(js.dump());
 		}
+		else if (users.getstate() == "oneline")
+		{
+			redis_.publish(users.getid(), js.dump());
+		}
 		else
 		{
 			// 存储离线消息
-			offlineMsgModel_.insert(id, js.dump());
+			offlineMsgModel_.insert(users.getid(), js.dump());
 		}
 	}
 
@@ -543,6 +626,24 @@ void ChatService::chatGroup(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 	response["msgack"] = "群聊消息成功";
 
 	conn->send(response.dump());
+}
+
+
+// redis的回调函数
+void ChatService::sendRedisMsg(int id, std::string msg)
+{
+	{
+		std::unique_lock<std::mutex> lock(connMutex_);
+		auto it = connMap_.find(id);
+		if (it != connMap_.end())
+		{
+			it->second->send(msg);
+			return;
+		}
+	}
+
+	// 存储离线消息
+	offlineMsgModel_.insert(id, msg);
 }
 
 
