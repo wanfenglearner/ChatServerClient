@@ -2,6 +2,13 @@
 #include "user.h"
 #include <unordered_set>
 #include <set>
+
+// 使用全局变量表示用户的在线状态
+
+static const std::string OnLine = "online";
+
+
+
 // 构造函数
 ChatService::ChatService()
 {
@@ -74,7 +81,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 	if (user.getid() == id && user.getpassword() == pwd)
 	{
 		// 输入的信息正确
-		if (user.getstate() == "online")
+		if (user.getstate() == OnLine)
 		{
 			// 账号已经登录了, 不能重复登录
 
@@ -89,7 +96,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 		{
 			// 第一次登录
 			// 把当前用户的状态改为在线
-			user.setstate("online");
+			user.setstate(OnLine);
 			userModel_.updateState(user);
 
 			// 订阅通道
@@ -187,7 +194,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 						setConn.insert(it->second);
 					}
 					// 不在同一个服务器
-					else if (i.getstate() == "online")
+					else if (i.getstate() == OnLine)
 					{
 						setChannel.insert(i.getid());
 					}
@@ -208,7 +215,7 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 							setConn.insert(it->second);
 						}
 						// 不在同一个服务器
-						else if (puser.getstate() == "online")
+						else if (puser.getstate() == OnLine)
 						{
 							setChannel.insert(puser.getid());
 						}
@@ -282,7 +289,7 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 				setConn.insert(it->second);
 			}
 			// 不在同一个服务器
-			else if (i.getstate() == "online")
+			else if (i.getstate() == OnLine)
 			{
 				setChannel.insert(i.getid());
 			}
@@ -303,7 +310,7 @@ void ChatService::loginout(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 					setConn.insert(it->second);
 				}
 				// 不在同一个服务器
-				else if (puser.getstate() == "online")
+				else if (puser.getstate() == OnLine)
 				{
 					setChannel.insert(puser.getid());
 				}
@@ -418,7 +425,7 @@ void ChatService::oneChat(const muduo::net::TcpConnectionPtr& conn,Json& js,mudu
 	
 	// 查看聊天好友是否在线
 	User user = userModel_.query(toid);
-	if (user.getstate() == "online")
+	if (user.getstate() == OnLine)
 	{
 		// 说明不在同一台服务器
 		redis_.publish(toid, js.dump());
@@ -475,7 +482,7 @@ void ChatService::addFriend(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 			js["msgid"] = MSG_ADD_FRIEND_ACK;
 			it->second->send(js.dump());
 		}
-		else if (friuser.getstate() == "online")
+		else if (friuser.getstate() == OnLine)
 		{
 			js["msgid"] = MSG_ADD_FRIEND_ACK;
 			redis_.publish(friendid, js.dump());
@@ -557,7 +564,7 @@ void ChatService::addGroup(const muduo::net::TcpConnectionPtr& conn,Json& js,mud
 				js["msgid"] = MSG_ADD_GROUP_ACK;
 				it->second->send(js.dump());
 			}
-			else if (i.getstate() == "oneline")
+			else if (i.getstate() == OnLine)
 			{
 				js["msgid"] = MSG_ADD_GROUP_ACK;
 				redis_.publish(i.getid(), js.dump());
@@ -606,7 +613,7 @@ void ChatService::chatGroup(const muduo::net::TcpConnectionPtr& conn, Json& js, 
 		{
 			it->second->send(js.dump());
 		}
-		else if (users.getstate() == "oneline")
+		else if (users.getstate() == OnLine)
 		{
 			redis_.publish(users.getid(), js.dump());
 		}
