@@ -1,0 +1,8 @@
+/home/robin/projects/Chat/build/CMakeFiles/edit_cache.dir
+/home/robin/projects/Chat/build/CMakeFiles/rebuild_cache.dir
+/home/robin/projects/Chat/build/Server/CMakeFiles/Server.dir
+/home/robin/projects/Chat/build/Server/CMakeFiles/edit_cache.dir
+/home/robin/projects/Chat/build/Server/CMakeFiles/rebuild_cache.dir
+/home/robin/projects/Chat/build/Client/CMakeFiles/Client.dir
+/home/robin/projects/Chat/build/Client/CMakeFiles/edit_cache.dir
+/home/robin/projects/Chat/build/Client/CMakeFiles/rebuild_cache.dir

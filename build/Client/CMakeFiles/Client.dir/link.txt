@@ -1,0 +1,1 @@
+/usr/bin/c++  -std=c++17 -fPIC -g CMakeFiles/Client.dir/src/chatclient.cpp.o CMakeFiles/Client.dir/src/main.cpp.o -o ../../bin/Client   -L/usr/local/lib  -L/usr/lib64/mysql  -Wl,-rpath,/usr/local/lib:/usr/lib64/mysql -lmuduo_net -lmuduo_base -lmuduo_http -lmuduo_inspect -lmysqlclient -lhiredis -lpthread 
