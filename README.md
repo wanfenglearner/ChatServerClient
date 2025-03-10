@@ -1,2 +1,1 @@
-# ChatServer
-基于muduo网络库实现的集群聊天服务器
+基于mudue网络库和nginx tcp负载均衡实现的集群聊天服务器和客户端
