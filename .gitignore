@@ -1,2 +1,5 @@
-bin/
-build/
+bin/*
+!bin/.gitkeep
+build/*
+!bin/.gitkeep
+
