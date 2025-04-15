@@ -8,8 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/robin/projects/Chat/Client/src/chatclient.cpp" "Client/CMakeFiles/Client.dir/src/chatclient.cpp.o" "gcc" "Client/CMakeFiles/Client.dir/src/chatclient.cpp.o.d"
-  "/home/robin/projects/Chat/Client/src/main.cpp" "Client/CMakeFiles/Client.dir/src/main.cpp.o" "gcc" "Client/CMakeFiles/Client.dir/src/main.cpp.o.d"
+  "/home/robin/project/ChatServerClient/Client/src/chatclient.cpp" "Client/CMakeFiles/Client.dir/src/chatclient.cpp.o" "gcc" "Client/CMakeFiles/Client.dir/src/chatclient.cpp.o.d"
+  "/home/robin/project/ChatServerClient/Client/src/main.cpp" "Client/CMakeFiles/Client.dir/src/main.cpp.o" "gcc" "Client/CMakeFiles/Client.dir/src/main.cpp.o.d"
   )
 
 # Targets to which this target links.

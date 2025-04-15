@@ -54,10 +54,10 @@ RM = /home/robin/workplace/cmake-3.22.0-linux-x86_64/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/robin/projects/Chat
+CMAKE_SOURCE_DIR = /home/robin/project/ChatServerClient
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/robin/projects/Chat/build
+CMAKE_BINARY_DIR = /home/robin/project/ChatServerClient/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -114,14 +114,14 @@ Server/clean: Server/CMakeFiles/Server.dir/clean
 Server/CMakeFiles/Server.dir/all:
 	$(MAKE) $(MAKESILENT) -f Server/CMakeFiles/Server.dir/build.make Server/CMakeFiles/Server.dir/depend
 	$(MAKE) $(MAKESILENT) -f Server/CMakeFiles/Server.dir/build.make Server/CMakeFiles/Server.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/robin/projects/Chat/build/CMakeFiles --progress-num=4,5,6,7,8,9,10,11,12,13 "Built target Server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/robin/project/ChatServerClient/build/CMakeFiles --progress-num=4,5,6,7,8,9,10,11,12,13 "Built target Server"
 .PHONY : Server/CMakeFiles/Server.dir/all
 
 # Build rule for subdir invocation for target.
 Server/CMakeFiles/Server.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/projects/Chat/build/CMakeFiles 10
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/project/ChatServerClient/build/CMakeFiles 10
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Server/CMakeFiles/Server.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/projects/Chat/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/project/ChatServerClient/build/CMakeFiles 0
 .PHONY : Server/CMakeFiles/Server.dir/rule
 
 # Convenience name for target.
@@ -140,14 +140,14 @@ Server/CMakeFiles/Server.dir/clean:
 Client/CMakeFiles/Client.dir/all:
 	$(MAKE) $(MAKESILENT) -f Client/CMakeFiles/Client.dir/build.make Client/CMakeFiles/Client.dir/depend
 	$(MAKE) $(MAKESILENT) -f Client/CMakeFiles/Client.dir/build.make Client/CMakeFiles/Client.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/robin/projects/Chat/build/CMakeFiles --progress-num=1,2,3 "Built target Client"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/robin/project/ChatServerClient/build/CMakeFiles --progress-num=1,2,3 "Built target Client"
 .PHONY : Client/CMakeFiles/Client.dir/all
 
 # Build rule for subdir invocation for target.
 Client/CMakeFiles/Client.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/projects/Chat/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/project/ChatServerClient/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Client/CMakeFiles/Client.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/projects/Chat/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/project/ChatServerClient/build/CMakeFiles 0
 .PHONY : Client/CMakeFiles/Client.dir/rule
 
 # Convenience name for target.

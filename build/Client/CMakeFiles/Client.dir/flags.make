@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/robin/projects/Chat/include -I/home/robin/projects/Chat/Client/include
+CXX_INCLUDES = -I/home/robin/project/ChatServerClient/include -I/home/robin/project/ChatServerClient/Client/include
 
 CXX_FLAGS =  -std=c++17 -fPIC -g -std=gnu++11
 

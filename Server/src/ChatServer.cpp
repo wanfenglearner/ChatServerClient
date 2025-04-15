@@ -1,4 +1,6 @@
 #include "ChatServer.h"
+#include <thread>
+
 
 ChatServer::ChatServer(muduo::net::EventLoop* loop,
 	const muduo::net::InetAddress& listenAddr,
@@ -14,7 +16,7 @@ ChatServer::ChatServer(muduo::net::EventLoop* loop,
 		std::placeholders::_3
 	));
 
-	server_.setThreadNum(10);		// 线程的数量
+	server_.setThreadNum(std::thread::hardware_concurrency());		// 线程的数量
 
 }
 
@@ -26,7 +28,7 @@ void ChatServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
 	{
 		// 把当前用户从connMap_ 里删除并设置下线
 		ChatService::instance()->clientCloseException(conn);
-		//conn -> shutdown();
+		conn -> shutdown();
 	}
 }
 

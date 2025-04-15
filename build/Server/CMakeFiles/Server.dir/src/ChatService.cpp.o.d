@@ -1,7 +1,7 @@
 Server/CMakeFiles/Server.dir/src/ChatService.cpp.o: \
- /home/robin/projects/Chat/Server/src/ChatService.cpp \
+ /home/robin/project/ChatServerClient/Server/src/ChatService.cpp \
  /usr/include/stdc-predef.h \
- /home/robin/projects/Chat/Server/include/ChatService.h \
+ /home/robin/project/ChatServerClient/Server/include/ChatService.h \
  /usr/include/muduo/net/TcpServer.h /usr/include/muduo/base/Atomic.h \
  /usr/include/muduo/base/noncopyable.h \
  /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include/stdint.h \
@@ -258,20 +258,20 @@ Server/CMakeFiles/Server.dir/src/ChatService.cpp.o: \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/gslice_array.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/mask_array.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/indirect_array.h \
- /home/robin/projects/Chat/include/public.h \
- /home/robin/projects/Chat/Server/include/offlinemessagemodel.h \
- /home/robin/projects/Chat/Server/include/usermodel.h \
- /home/robin/projects/Chat/Server/include/user.h \
- /home/robin/projects/Chat/Server/include/friendmodel.h \
- /home/robin/projects/Chat/Server/include/groupmodel.h \
- /home/robin/projects/Chat/Server/include/group.h \
- /home/robin/projects/Chat/Server/include/groupuser.h \
- /home/robin/projects/Chat/Server/include/redis.h \
+ /home/robin/project/ChatServerClient/include/public.h \
+ /home/robin/project/ChatServerClient/Server/include/offlinemessagemodel.h \
+ /home/robin/project/ChatServerClient/Server/include/usermodel.h \
+ /home/robin/project/ChatServerClient/Server/include/user.h \
+ /home/robin/project/ChatServerClient/Server/include/friendmodel.h \
+ /home/robin/project/ChatServerClient/Server/include/groupmodel.h \
+ /home/robin/project/ChatServerClient/Server/include/group.h \
+ /home/robin/project/ChatServerClient/Server/include/groupuser.h \
+ /home/robin/project/ChatServerClient/Server/include/redis.h \
  /usr/include/hiredis/hiredis.h /usr/include/hiredis/read.h \
  /usr/include/sys/time.h /usr/include/hiredis/sds.h \
  /usr/include/hiredis/alloc.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/thread \
- /home/robin/projects/Chat/Server/include/user.h \
+ /home/robin/project/ChatServerClient/Server/include/user.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/unordered_set \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/unordered_set.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/set \

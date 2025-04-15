@@ -1,6 +1,7 @@
 Client/CMakeFiles/Client.dir/src/main.cpp.o: \
- /home/robin/projects/Chat/Client/src/main.cpp /usr/include/stdc-predef.h \
- /home/robin/projects/Chat/Client/include/chatclient.h \
+ /home/robin/project/ChatServerClient/Client/src/main.cpp \
+ /usr/include/stdc-predef.h \
+ /home/robin/project/ChatServerClient/Client/include/chatclient.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/iostream \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/x86_64-redhat-linux/bits/c++config.h \
  /usr/include/bits/wordsize.h \
@@ -200,7 +201,7 @@ Client/CMakeFiles/Client.dir/src/main.cpp.o: \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/cstring \
  /usr/include/string.h /opt/rh/devtoolset-7/root/usr/include/c++/7/atomic \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/thread \
- /home/robin/projects/Chat/Client/include/user.h \
- /home/robin/projects/Chat/Client/include/group.h \
- /home/robin/projects/Chat/Client/include/groupuser.h \
- /home/robin/projects/Chat/Client/include/public.h
+ /home/robin/project/ChatServerClient/Client/include/user.h \
+ /home/robin/project/ChatServerClient/Client/include/group.h \
+ /home/robin/project/ChatServerClient/Client/include/groupuser.h \
+ /home/robin/project/ChatServerClient/Client/include/public.h

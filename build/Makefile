@@ -57,10 +57,10 @@ RM = /home/robin/workplace/cmake-3.22.0-linux-x86_64/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/robin/projects/Chat
+CMAKE_SOURCE_DIR = /home/robin/project/ChatServerClient
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/robin/projects/Chat/build
+CMAKE_BINARY_DIR = /home/robin/project/ChatServerClient/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/projects/Chat/build/CMakeFiles /home/robin/projects/Chat/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/project/ChatServerClient/build/CMakeFiles /home/robin/project/ChatServerClient/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/projects/Chat/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/robin/project/ChatServerClient/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

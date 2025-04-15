@@ -89,8 +89,9 @@ void ChatService::login(const muduo::net::TcpConnectionPtr& conn, Json& js, mudu
 			Json response;
 			response["msgid"] = MSG_LOGIN_ACK;
 			response["errno"] = 1;
-			response["msgack"] = "账号已经登录,无需再次登录";
+			response["msgack"] = u8"账号已经登录,无需再次登录";
 			conn->send(response.dump());
+			
 		}
 		else
 		{

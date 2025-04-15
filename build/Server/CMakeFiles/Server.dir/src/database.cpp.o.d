@@ -1,7 +1,7 @@
 Server/CMakeFiles/Server.dir/src/database.cpp.o: \
- /home/robin/projects/Chat/Server/src/database.cpp \
+ /home/robin/project/ChatServerClient/Server/src/database.cpp \
  /usr/include/stdc-predef.h \
- /home/robin/projects/Chat/Server/include/database.h \
+ /home/robin/project/ChatServerClient/Server/include/database.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/string \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/x86_64-redhat-linux/bits/c++config.h \
  /usr/include/bits/wordsize.h \
@@ -93,18 +93,16 @@ Server/CMakeFiles/Server.dir/src/database.cpp.o: \
  /usr/include/asm-generic/errno-base.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/functional_hash.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/basic_string.tcc \
- /usr/include/mysql/mysql.h \
- /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include/stdbool.h \
- /usr/include/mysql/field_types.h /usr/include/mysql/my_list.h \
- /usr/include/mysql/mysql_com.h /usr/include/mysql/my_command.h \
- /usr/include/mysql/my_compress.h \
- /usr/include/mysql/mysql/udf_registration_types.h \
- /usr/include/mysql/mysql/client_plugin.h \
+ /usr/include/mysql/mysql.h /usr/include/mysql/mysql_version.h \
+ /usr/include/mysql/mysql_com.h /usr/include/mysql/binary_log_types.h \
+ /usr/include/mysql/my_command.h /usr/include/mysql/mysql_time.h \
+ /usr/include/mysql/my_list.h /usr/include/mysql/mysql/client_plugin.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/stdlib.h \
  /usr/include/mysql/mysql/plugin_auth_common.h \
- /usr/include/mysql/mysql_version.h /usr/include/mysql/mysql_time.h \
- /usr/include/mysql/errmsg.h /usr/include/muduo/base/Logging.h \
- /usr/include/muduo/base/LogStream.h \
+ /usr/include/mysql/typelib.h /usr/include/mysql/my_alloc.h \
+ /usr/include/mysql/mysql/psi/psi_memory.h \
+ /usr/include/mysql/mysql/psi/psi_base.h \
+ /usr/include/muduo/base/Logging.h /usr/include/muduo/base/LogStream.h \
  /usr/include/muduo/base/noncopyable.h \
  /usr/include/muduo/base/StringPiece.h /usr/include/string.h \
  /usr/include/muduo/base/Types.h /usr/include/assert.h \

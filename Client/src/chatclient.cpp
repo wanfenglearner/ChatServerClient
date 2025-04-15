@@ -107,6 +107,7 @@ void ChatClient::login()
 // 注册
 void ChatClient::reg()
 {
+	
 	// 输入name + password
 	std::string name;
 	std::string password;
@@ -119,6 +120,7 @@ void ChatClient::reg()
 	Json request;
 	request["msgid"] = MSG_REG;
 	request["name"] = name;
+
 	request["password"] = password;
 
 	std::string buf = request.dump();

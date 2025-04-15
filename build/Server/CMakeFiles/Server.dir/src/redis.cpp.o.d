@@ -1,7 +1,7 @@
 Server/CMakeFiles/Server.dir/src/redis.cpp.o: \
- /home/robin/projects/Chat/Server/src/redis.cpp \
+ /home/robin/project/ChatServerClient/Server/src/redis.cpp \
  /usr/include/stdc-predef.h \
- /home/robin/projects/Chat/Server/include/redis.h \
+ /home/robin/project/ChatServerClient/Server/include/redis.h \
  /usr/include/hiredis/hiredis.h /usr/include/hiredis/read.h \
  /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \

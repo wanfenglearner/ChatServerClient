@@ -1,5 +1,6 @@
 Server/CMakeFiles/Server.dir/src/main.cpp.o: \
- /home/robin/projects/Chat/Server/src/main.cpp /usr/include/stdc-predef.h \
+ /home/robin/project/ChatServerClient/Server/src/main.cpp \
+ /usr/include/stdc-predef.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/iostream \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/x86_64-redhat-linux/bits/c++config.h \
  /usr/include/bits/wordsize.h \
@@ -114,7 +115,7 @@ Server/CMakeFiles/Server.dir/src/main.cpp.o: \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/ostream.tcc \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/istream \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/istream.tcc \
- /home/robin/projects/Chat/Server/include/ChatServer.h \
+ /home/robin/project/ChatServerClient/Server/include/ChatServer.h \
  /usr/include/muduo/net/TcpServer.h /usr/include/muduo/base/Atomic.h \
  /usr/include/muduo/base/noncopyable.h /usr/include/muduo/base/Types.h \
  /usr/include/string.h /usr/include/assert.h \
@@ -253,27 +254,27 @@ Server/CMakeFiles/Server.dir/src/main.cpp.o: \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/gslice_array.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/mask_array.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/indirect_array.h \
- /home/robin/projects/Chat/include/public.h \
- /home/robin/projects/Chat/Server/include/ChatService.h \
+ /home/robin/project/ChatServerClient/include/public.h \
+ /home/robin/project/ChatServerClient/Server/include/ChatService.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/mutex \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/chrono \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/ratio \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/ctime \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/parse_numbers.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/bits/std_mutex.h \
- /home/robin/projects/Chat/Server/include/offlinemessagemodel.h \
- /home/robin/projects/Chat/Server/include/usermodel.h \
- /home/robin/projects/Chat/Server/include/user.h \
- /home/robin/projects/Chat/Server/include/friendmodel.h \
- /home/robin/projects/Chat/Server/include/groupmodel.h \
- /home/robin/projects/Chat/Server/include/group.h \
- /home/robin/projects/Chat/Server/include/groupuser.h \
- /home/robin/projects/Chat/Server/include/redis.h \
+ /home/robin/project/ChatServerClient/Server/include/offlinemessagemodel.h \
+ /home/robin/project/ChatServerClient/Server/include/usermodel.h \
+ /home/robin/project/ChatServerClient/Server/include/user.h \
+ /home/robin/project/ChatServerClient/Server/include/friendmodel.h \
+ /home/robin/project/ChatServerClient/Server/include/groupmodel.h \
+ /home/robin/project/ChatServerClient/Server/include/group.h \
+ /home/robin/project/ChatServerClient/Server/include/groupuser.h \
+ /home/robin/project/ChatServerClient/Server/include/redis.h \
  /usr/include/hiredis/hiredis.h /usr/include/hiredis/read.h \
  /usr/include/sys/time.h /usr/include/hiredis/sds.h \
  /usr/include/hiredis/alloc.h \
  /opt/rh/devtoolset-7/root/usr/include/c++/7/thread \
- /home/robin/projects/Chat/Server/include/ChatService.h \
+ /home/robin/project/ChatServerClient/Server/include/ChatService.h \
  /usr/include/signal.h /usr/include/bits/signum.h \
  /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h \
  /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h \

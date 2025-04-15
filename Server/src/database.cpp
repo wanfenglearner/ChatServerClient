@@ -8,11 +8,11 @@
 #include <muduo/base/LogFile.h>
 
 // 初始化数据库的配置信息
-static std::string host = "127.0.0.1";	
-static std::string name = "root";
-static std::string password = "17335323908Wss@";
-static std::string dbname = "chat";
-static int port = 3306;
+static const std::string host = "127.0.0.1";	
+static const std::string name = "root";
+static const std::string password = "wss0501";
+static const std::string dbname = "chat";
+static const int port = 3306;
 
 // 构造函数
 MySQL::MySQL()

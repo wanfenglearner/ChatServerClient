@@ -1,4 +1,4 @@
-# Install script for directory: /home/robin/projects/Chat
+# Install script for directory: /home/robin/project/ChatServerClient
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,8 +44,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/robin/projects/Chat/build/Server/cmake_install.cmake")
-  include("/home/robin/projects/Chat/build/Client/cmake_install.cmake")
+  include("/home/robin/project/ChatServerClient/build/Server/cmake_install.cmake")
+  include("/home/robin/project/ChatServerClient/build/Client/cmake_install.cmake")
 
 endif()
 
@@ -57,5 +57,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/robin/projects/Chat/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/robin/project/ChatServerClient/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
