@@ -1,5 +1,5 @@
 bin/*
 !bin/.gitkeep
 build/*
-!bin/.gitkeep
+!build/.gitkeep
 
